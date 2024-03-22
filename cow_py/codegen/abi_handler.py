@@ -48,6 +48,12 @@ def _get_partials_files() -> str:
     return [str(x) for x in pkg_files.iterdir() if x.suffix == ".hbs"]  # type: ignore
 
 
+class ABIHandlerError(Exception):
+    """Raised when an error occurs in the ABI handler."""
+
+    pass
+
+
 class ABIHandler:
     """
     Handles the generation of Python classes and methods from Ethereum contract ABIs.
@@ -77,10 +83,15 @@ class ABIHandler:
 
         Returns:
             str: The generated Python code as a string.
-        """
-        template_data = self._prepare_template_data()
 
-        return self._render_template(template_data)
+        Raises:
+            ABIHandlerError: If an error occurs during ABI processing or code generation.
+        """
+        try:
+            template_data = self._prepare_template_data()
+            return self._render_template(template_data)
+        except Exception as e:
+            raise ABIHandlerError(f"Error generating code: {str(e)}") from e
 
     def _prepare_template_data(self) -> Dict[str, Any]:
         """
@@ -91,27 +102,46 @@ class ABIHandler:
 
         Returns:
             Dict[str, Any]: A dictionary containing the structured data for rendering.
+
+        Raises:
+            ABIHandlerError: If an error occurs during ABI processing.
         """
-        methods, data_classes, enums = [], [], []
-        generated_structs, generated_enums = set(), set()
+        try:
+            methods, data_classes, enums = [], [], []
+            generated_structs, generated_enums = set(), set()
 
-        abi = FileAbiLoader(self.abi_file_path).load_abi()
+            abi = FileAbiLoader(self.abi_file_path).load_abi()
 
-        for item in abi:
-            if item["type"] == "function":
-                methods.append(self._process_function(item))
-                for param in item["inputs"] + item.get("outputs", []):
-                    self._process_parameters(
-                        param, data_classes, enums, generated_structs, generated_enums
-                    )
+            for item in abi:
+                if item["type"] == "function":
+                    methods.append(self._process_function(item))
+                    for param in item["inputs"] + item.get("outputs", []):
+                        self._process_parameters(
+                            param,
+                            data_classes,
+                            enums,
+                            generated_structs,
+                            generated_enums,
+                        )
+                elif item["type"] == "event":
+                    for param in item["inputs"]:
+                        self._process_parameters(
+                            param,
+                            data_classes,
+                            enums,
+                            generated_structs,
+                            generated_enums,
+                        )
 
-        return {
-            "abiPath": self.abi_file_path,
-            "contractName": self.contract_name,
-            "methods": methods,
-            "dataClasses": data_classes,
-            "enums": enums,
-        }
+            return {
+                "abiPath": self.abi_file_path,
+                "contractName": self.contract_name,
+                "methods": methods,
+                "dataClasses": data_classes,
+                "enums": enums,
+            }
+        except Exception as e:
+            raise ABIHandlerError(f"Error preparing template data: {str(e)}") from e
 
     def _process_parameters(
         self, param, data_classes, enums, generated_structs, generated_enums
@@ -134,15 +164,11 @@ class ABIHandler:
             and param["internalType"] not in generated_enums
         ):
             enum_name = SolidityConverter._get_struct_name(param["internalType"])
-            enums.append(
-                {
-                    "name": enum_name,
-                    "values": [
-                        {"name": "VALUE_1", "value": 1},
-                        {"name": "VALUE_2", "value": 2},
-                    ],
-                }
-            )
+            enum_values = [
+                {"name": item["name"], "value": item["value"]}
+                for item in param["components"]
+            ]
+            enums.append({"name": enum_name, "values": enum_values})
             generated_enums.add(param["internalType"])
 
     def _process_function(self, function_item: Dict[str, Any]) -> Dict[str, Any]:
@@ -168,13 +194,6 @@ class ABIHandler:
             "outputType": output_str,
             "originalName": original_name,
         }
-
-    def _process_enum(self, enum_item: Dict[str, Any]) -> Dict[str, Any]:
-        enum_name = enum_item["name"]
-        enum_values = [
-            {"name": v["name"], "value": v["value"]} for v in enum_item["values"]
-        ]
-        return {"name": enum_name, "values": enum_values}
 
     def _generate_function_input_args_with_types(
         self, function_item: Dict[str, Any]

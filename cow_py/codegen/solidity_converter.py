@@ -17,8 +17,8 @@ DYNAMIC_SOLIDITY_TYPES = {
 SOLIDITY_TO_PYTHON_TYPES.update(DYNAMIC_SOLIDITY_TYPES)
 
 
-class InvalidABIError(Exception):
-    """Raised when an invalid ABI is provided."""
+class SolidityConverterError(Exception):
+    """Raised when an error occurs in the SolidityConverter."""
 
     pass
 
@@ -44,7 +44,14 @@ class SolidityConverter:
 
         Returns:
             str: The extracted name of the struct.
+
+        Raises:
+            SolidityConverterError: If the internal type is not in the expected format.
         """
+        if not internal_type or "struct " not in internal_type:
+            raise SolidityConverterError(
+                f"Invalid internal type for struct: {internal_type}"
+            )
         return internal_type.replace("struct ", "").replace(".", "_").replace("[]", "")
 
     @classmethod
@@ -69,4 +76,13 @@ class SolidityConverter:
             return f'List[{SOLIDITY_TO_PYTHON_TYPES.get(base_type, "Any")}]'
         elif solidity_type == "tuple":
             return cls._get_struct_name(internal_type)
+        elif "[" in solidity_type and "]" in solidity_type:
+            array_size = solidity_type[
+                solidity_type.index("[") + 1 : solidity_type.index("]")
+            ]
+            base_type = solidity_type.split("[")[0]
+            if array_size:
+                return f'Tuple[{", ".join([SOLIDITY_TO_PYTHON_TYPES.get(base_type, "Any")] * int(array_size))}]'
+            else:
+                return f'List[{SOLIDITY_TO_PYTHON_TYPES.get(base_type, "Any")}]'
         return SOLIDITY_TO_PYTHON_TYPES.get(solidity_type, "Any")

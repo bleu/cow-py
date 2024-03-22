@@ -1,5 +1,6 @@
+from eth_account.datastructures import SignedMessage
 from eth_account.signers.local import LocalAccount
-from eth_account.messages import encode_typed_data
+from eth_account import Account
 from typing import List, NamedTuple, Union
 from eth_utils.conversions import to_hex
 from eth_utils.crypto import keccak
@@ -58,18 +59,11 @@ Signature = Union[EcdsaSignature, Eip1271Signature, PreSignSignature]
 
 
 def ecdsa_sign_typed_data(
-    scheme, owner: LocalAccount, domain, message_types, data
-) -> str:
-    if scheme == SigningScheme.EIP712:
-        encoded_message = encode_typed_data(
-            domain_data=domain, message_types=message_types, message_data=data
-        )
-    elif scheme == SigningScheme.ETHSIGN:
-        encoded_message = hash_typed_data(domain, message_types, data)
-    else:
-        raise ValueError("Invalid signing scheme")
-
-    return owner.sign_message(encoded_message)
+    scheme, owner: LocalAccount, domain_data, message_types, message_data
+) -> SignedMessage:
+    return Account._sign_hash(
+        hash_typed_data(domain_data, message_types, message_data), owner.key
+    )
 
 
 def sign_order(
@@ -81,7 +75,7 @@ def sign_order(
     )
     return EcdsaSignature(
         scheme=scheme,
-        data=signed_data,
+        data=signed_data.signature.hex(),
     )
 
 
@@ -97,7 +91,7 @@ def sign_order_cancellations(
 
     signed_data = ecdsa_sign_typed_data(scheme, owner, domain, types, data)
 
-    return {"scheme": scheme, "data": signed_data}
+    return EcdsaSignature(scheme=scheme, data=signed_data.signature.hex())
 
 
 def encode_eip1271_signature_data(verifier, signature):

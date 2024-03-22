@@ -19,6 +19,12 @@ class IConditionalOrder_ConditionalOrderParams:
 
 
 @dataclass
+class ComposableCoW_Proof:
+    location: int
+    data: HexBytes
+
+
+@dataclass
 class GPv2Order_Data:
     sellToken: str
     buyToken: str
@@ -32,12 +38,6 @@ class GPv2Order_Data:
     partiallyFillable: bool
     sellTokenBalance: HexBytes
     buyTokenBalance: HexBytes
-
-
-@dataclass
-class ComposableCoW_Proof:
-    location: int
-    data: HexBytes
 
 
 class ComposableCowMixin(BaseMixin):

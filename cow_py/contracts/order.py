@@ -1,7 +1,12 @@
-from eth_account.messages import SignableMessage, encode_typed_data
+from eth_account.messages import (
+    encode_typed_data,
+    _hash_eip191_message,
+)
+
 from dataclasses import dataclass
 from enum import Enum
 from typing import Literal, Optional, Union
+from eth_typing import Hash32
 from eth_utils.conversions import to_bytes, to_hex
 
 
@@ -268,7 +273,7 @@ def normalize_order(order: Order):
 # }
 
 
-def hash_typed_data(domain, types, data) -> SignableMessage:
+def hash_typed_data(domain, types, data) -> Hash32:
     """
     Compute the 32-byte signing hash for the specified order.
 
@@ -280,7 +285,7 @@ def hash_typed_data(domain, types, data) -> SignableMessage:
     encoded_data = encode_typed_data(
         domain_data=domain, message_types=types, message_data=data
     )
-    return encoded_data
+    return _hash_eip191_message(encoded_data)
 
 
 # /**
@@ -310,7 +315,7 @@ def hash_order(domain, order):
     return hash_typed_data(domain, ORDER_TYPE_FIELDS, normalize_order(order))
 
 
-def hash_order_cancellation(domain, order_uid) -> SignableMessage:
+def hash_order_cancellation(domain, order_uid) -> str:
     """
     Compute the 32-byte signing hash for the specified cancellation.
 
@@ -321,19 +326,21 @@ def hash_order_cancellation(domain, order_uid) -> SignableMessage:
     return hash_order_cancellations(domain, [order_uid])
 
 
-def hash_order_cancellations(domain, order_uids) -> SignableMessage:
+def hash_order_cancellations(domain_data, order_uids) -> str:
     """
     Compute the 32-byte signing hash for the specified order cancellations.
 
-    :param domain: The EIP-712 domain separator to compute the hash for.
+    :param domain_data: The EIP-712 domain separator to compute the hash for.
     :param order_uids: The unique identifiers of the orders to cancel.
     :return: Hex-encoded 32-byte order digest.
     """
-    return hash_typed_data(
-        domain,
-        {"OrderCancellations": CANCELLATIONS_TYPE_FIELDS},
-        {"orderUids": order_uids},
-    )
+    return _hash_eip191_message(
+        encode_typed_data(
+            domain_data,
+            message_types={"OrderCancellations": CANCELLATIONS_TYPE_FIELDS},
+            message_data={"orderUids": order_uids},
+        )
+    ).hex()
 
 
 # The byte length of an order UID.

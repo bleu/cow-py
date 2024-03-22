@@ -3,6 +3,12 @@ from cow_py.common.chains import Chain
 from cow_py.codegen.components.contract_loader import ContractLoader
 
 
+class BaseContractError(Exception):
+    """Raised when an error occurs in the BaseContract class."""
+
+    pass
+
+
 class BaseContract:
     """
     A base class for contracts that implements common functionality.
@@ -22,20 +28,19 @@ class BaseContract:
             cls._instances[key] = super(BaseContract, cls).__new__(cls)
         return cls._instances[key]
 
-    def __init__(self, address: str, chain: Chain, abi=None):
+    def __init__(self, address: str, chain: Chain, abi: List[Any] = None):
         """
-        Initializes the BaseContract with a contract address, chain, and optionally an ABI file name.
+        Initializes the BaseContract with a contract address, chain, and optionally an ABI.
 
         :param address: The address of the contract on the specified chain
         :param chain: The chain the contract is deployed on
-        :param abi_file_name: The ABI file name of the contract, optional
         :param abi: The ABI of the contract, optional
         """
         if not hasattr(self, "_initialized"):  # Avoid re-initialization
             # Initialize the instance (only the first time)
             self.contract_loader = ContractLoader(chain)
             self.web3_contract = self.contract_loader.get_web3_contract(
-                address, self.ABI if abi is None else abi
+                address, abi or self.ABI or []
             )
             self._initialized = True
 
@@ -50,10 +55,10 @@ class BaseContract:
         :param function_name: The name of the function to check for
         :return: True if the function exists, False otherwise
         """
-        for item in self.web3_contract.abi:
-            if item.get("type") == "function" and item.get("name") == function_name:
-                return True
-        return False
+        return any(
+            item.get("type") == "function" and item.get("name") == function_name
+            for item in self.web3_contract.abi
+        )
 
     def _event_exists_in_abi(self, event_name):
         """
@@ -62,10 +67,10 @@ class BaseContract:
         :param event_name: The name of the event to check for
         :return: True if the event exists, False otherwise
         """
-        for item in self.web3_contract.abi:
-            if item.get("type") == "event" and item.get("name") == event_name:
-                return True
-        return False
+        return any(
+            item.get("type") == "event" and item.get("name") == event_name
+            for item in self.web3_contract.abi
+        )
 
     def __getattr__(self, name):
         """
@@ -73,24 +78,31 @@ class BaseContract:
 
         :param name: The name of the attribute being accessed
         :return: The wrapped contract function if it exists, raises AttributeError otherwise
+
+        Raises:
+            BaseContractError: If an error occurs while accessing the contract function.
         """
         if name == "_initialized":
             # This is needed to avoid infinite recursion
             raise AttributeError(name)
 
-        if getattr(self.web3_contract, name, None):
-            return getattr(self.web3_contract, name)
+        try:
+            if hasattr(self.web3_contract, name):
+                return getattr(self.web3_contract, name)
 
-        if self._event_exists_in_abi(name):
-            # TODO: ability to get event signature hash
-            function = getattr(self.web3_contract.events, name)
+            if self._event_exists_in_abi(name):
+                return getattr(self.web3_contract.events, name)
 
-        if self._function_exists_in_abi(name):
-            function = getattr(self.web3_contract.functions, name)
+            if self._function_exists_in_abi(name):
+                function = getattr(self.web3_contract.functions, name)
 
-            def wrapped_call(*args, **kwargs):
-                return function(*args, **kwargs).call()
+                def wrapped_call(*args, **kwargs):
+                    return function(*args, **kwargs).call()
 
-            return wrapped_call
+                return wrapped_call
+        except Exception as e:
+            raise BaseContractError(
+                f"Error accessing attribute {name}: {str(e)}"
+            ) from e
 
         raise AttributeError(f"{self.__class__.__name__} has no attribute {name}")

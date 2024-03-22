@@ -11,6 +11,13 @@ from cow_py.codegen.components import (
 
 
 @dataclass
+class IConditionalOrder_ConditionalOrderParams:
+    handler: str
+    salt: HexBytes
+    staticInput: HexBytes
+
+
+@dataclass
 class GPv2Order_Data:
     sellToken: str
     buyToken: str

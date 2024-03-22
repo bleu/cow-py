@@ -1,7 +1,5 @@
-from eth_account import messages
 from eth_account.signers.local import LocalAccount
 from eth_utils.conversions import to_hex
-from eth_utils.crypto import keccak
 import pytest
 from web3 import Web3, EthereumTesterProvider
 
@@ -43,15 +41,6 @@ def patched_sign_message_builder(account: LocalAccount):
     return sign_message
 
 
-def recover_signing_digest(scheme, cancellation_hash: SignableMessage):
-    if scheme == SigningScheme.EIP712:
-        return to_hex(keccak(cancellation_hash.body))
-    elif scheme == SigningScheme.ETHSIGN:
-        return messages._hash_eip191_message(cancellation_hash)
-    else:
-        raise ValueError("Unsupported signing scheme")
-
-
 @pytest.mark.asyncio
 @pytest.mark.parametrize("scheme", [SigningScheme.EIP712, SigningScheme.ETHSIGN])
 async def test_sign_order(monkeypatch, scheme):
@@ -82,11 +71,8 @@ async def test_sign_order_cancellation(scheme):
 
     signature_data = sign_order_cancellation(domain, order_uid, signer, scheme)
     order_hash = hash_order_cancellation(domain, order_uid)
-    signing_hash = recover_signing_digest(scheme, order_hash)
 
     assert (
-        w3.eth.account._recover_hash(
-            signing_hash, signature=signature_data["data"].signature
-        )
+        w3.eth.account._recover_hash(order_hash, signature=signature_data.data)
         == signer.address
     )
