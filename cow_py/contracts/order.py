@@ -6,7 +6,7 @@ from eth_account.messages import (
 from dataclasses import dataclass
 from enum import Enum
 from typing import Literal, Optional, Union
-from eth_typing import Hash32
+from eth_typing import Hash32, HexStr
 from eth_utils.conversions import to_bytes, to_hex
 
 
@@ -56,11 +56,6 @@ class Order:
     buyTokenBalance: Optional[str] = None
 
 
-# import { BigNumberish, BytesLike, ethers } from "ethers";
-
-# import { TypedDataDomain, TypedDataTypes } from "./types/ethers";
-
-
 # Gnosis Protocol v2 order cancellation data.
 @dataclass
 class OrderCancellations:
@@ -82,16 +77,11 @@ BUY_ETH_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
 #   "kind" | "partiallyFillable" | "sellTokenBalance" | "buyTokenBalance"
 # >;
 
+Timestamp = Union[int, int]
 
-# /**
-#  * A timestamp value.
-#  */
-# export type Timestamp = number | Date;
+BytesLike = Union[str, bytes, HexStr]
 
-# /**
-#  * A hash-like app data value.
-#  */
-# export type HashLike = BytesLike | number;
+HashLike = Union[BytesLike, int]
 
 
 class OrderKind(Enum):
@@ -151,18 +141,6 @@ def timestamp(t: int) -> int:
     return t
 
 
-# /**
-#  * Normalizes an app data value to a 32-byte hash.
-#  * @param hashLike A hash-like value to normalize.
-#  * @returns A 32-byte hash encoded as a hex-string.
-#  */
-# export function hashify(h: HashLike): string {
-#   return typeof h === "number"
-#     ? `0x${h.toString(16).padStart(64, "0")}`
-#     : ethers.utils.hexZeroPad(h, 32);
-# }
-
-
 def hashify(h: Union[int, str, bytes]) -> str:
     """
     Normalizes an app data value to a 32-byte hash.
@@ -214,23 +192,6 @@ def normalize_buy_token_balance(
 #   buyTokenBalance: "erc20" | "internal";
 # };
 
-# /**
-#  * Normalizes an order for hashing and signing, so that it can be used with
-#  * Ethers.js for EIP-712 operations.
-#  * @param hashLike A hash-like value to normalize.
-#  * @returns A 32-byte hash encoded as a hex-string.
-#  */
-# export function normalizeOrder(order: Order): NormalizedOrder {
-#   if (order.receiver === ethers.constants.AddressZero) {
-#     throw new Error("receiver cannot be address(0)");
-#   }
-
-#   const normalizedOrder = {
-#     ...order,
-#     buyTokenBalance: normalizeBuyTokenBalance(order.buyTokenBalance),
-#   };
-#   return normalizedOrder;
-# }
 
 ZERO_ADDRESS = "0x" + "00" * 20
 
@@ -257,22 +218,6 @@ def normalize_order(order: Order):
     }
 
 
-# /**
-#  * Compute the 32-byte signing hash for the specified order.
-#  *
-#  * @param domain The EIP-712 domain separator to compute the hash for.
-#  * @param types The order to compute the digest for.
-#  * @return Hex-encoded 32-byte order digest.
-#  */
-# export function hashTypedData(
-#   domain: TypedDataDomain,
-#   types: TypedDataTypes,
-#   data: Record<string, unknown>,
-# ): string {
-#   return ethers.utils._TypedDataEncoder.hash(domain, types, data);
-# }
-
-
 def hash_typed_data(domain, types, data) -> Hash32:
     """
     Compute the 32-byte signing hash for the specified order.
@@ -286,22 +231,6 @@ def hash_typed_data(domain, types, data) -> Hash32:
         domain_data=domain, message_types=types, message_data=data
     )
     return _hash_eip191_message(encoded_data)
-
-
-# /**
-#  * Compute the 32-byte signing hash for the specified order.
-#  *
-#  * @param domain The EIP-712 domain separator to compute the hash for.
-#  * @param order The order to compute the digest for.
-#  * @return Hex-encoded 32-byte order digest.
-#  */
-# export function hashOrder(domain: TypedDataDomain, order: Order): string {
-#   return hashTypedData(
-#     domain,
-#     { Order: ORDER_TYPE_FIELDS },
-#     normalizeOrder(order),
-#   );
-# }
 
 
 def hash_order(domain, order):

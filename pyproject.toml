@@ -24,7 +24,7 @@ datamodel-code-generator = "^0.25.5"
 ariadne-codegen = "^0.13.0"
 pytest-httpx = "^0.30.0"
 pytest-asyncio = "^0.23.6"
-web3 = {extras = ["tester"], version = "^6.15.1"}
+web3 = { extras = ["tester"], version = "^6.15.1" }
 
 [tool.poetry.scripts]
 

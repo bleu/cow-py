@@ -19,5 +19,13 @@ class Chain(Enum):
     def name(self) -> str:
         return self.network_name
 
+    @property
+    def explorer(self) -> str:
+        return self.explorer_url
+
+    @property
+    def chain_id(self) -> int:
+        return self.id
+
 
 SUPPORTED_CHAINS = {chain for chain in Chain}
