@@ -4,6 +4,7 @@ from cow_py.codegen.components.abi_loader import FileAbiLoader
 from cow_py.codegen.components.contract_loader import ContractLoader
 from cow_py.codegen.components.base_mixin import BaseMixin
 from cow_py.codegen.components.get_abi_file import get_abi_file
+from cow_py.codegen.components.templates import partials
 
 __all__ = [
     "BaseContract",
@@ -12,4 +13,5 @@ __all__ = [
     "ContractLoader",
     "BaseMixin",
     "get_abi_file",
+    "partials",
 ]

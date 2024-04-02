@@ -1,4 +1,7 @@
-# Constants
+import re
+from typing import Optional
+
+
 SOLIDITY_TO_PYTHON_TYPES = {
     "address": "str",
     "bool": "bool",
@@ -66,23 +69,40 @@ class SolidityConverter:
         Returns:
             str: The Python type equivalent to the given Solidity type.
         """
-        if internal_type and "enum" in internal_type:
-            return internal_type.split("enum")[-1].split(".")[-1].strip()
-        if "[]" in solidity_type:
-            base_type = solidity_type.replace("[]", "")
-            return f'List[{SOLIDITY_TO_PYTHON_TYPES.get(base_type, "Any")}]'
-        elif "[" in solidity_type and "]" in solidity_type:
-            base_type = solidity_type.split("[")[0]
-            return f'List[{SOLIDITY_TO_PYTHON_TYPES.get(base_type, "Any")}]'
+        if re.search(r"enum", internal_type) or (re.search(r"enum", solidity_type)):
+            return cls._extract_enum_name(internal_type, solidity_type)
         elif solidity_type == "tuple":
             return cls._get_struct_name(internal_type)
-        elif "[" in solidity_type and "]" in solidity_type:
-            array_size = solidity_type[
-                solidity_type.index("[") + 1 : solidity_type.index("]")
-            ]
-            base_type = solidity_type.split("[")[0]
-            if array_size:
-                return f'Tuple[{", ".join([SOLIDITY_TO_PYTHON_TYPES.get(base_type, "Any")] * int(array_size))}]'
-            else:
+        else:
+            return cls._convert_array_or_basic_type(solidity_type)
+
+    @staticmethod
+    def _extract_enum_name(
+        internal_type: Optional[str], solidity_type: Optional[str] = None
+    ) -> str:
+        if internal_type and re.search(r"enum", internal_type):
+            return internal_type.replace("enum ", "").replace(".", "_")
+        elif solidity_type and re.search(r"enum", solidity_type):
+            return solidity_type.replace("enum ", "").replace(".", "_")
+        raise SolidityConverterError(f"Invalid internal type for enum: {internal_type}")
+
+    @staticmethod
+    def _convert_array_or_basic_type(solidity_type: str) -> str:
+        array_match = re.match(r"(.+?)(\[\d*\])", solidity_type)
+        if array_match:
+            base_type, array_size = array_match.groups()
+            if array_size == "[]":
                 return f'List[{SOLIDITY_TO_PYTHON_TYPES.get(base_type, "Any")}]'
-        return SOLIDITY_TO_PYTHON_TYPES.get(solidity_type, "Any")
+            else:
+                size = int(array_size[1:-1])
+                return f'Tuple[{", ".join([SOLIDITY_TO_PYTHON_TYPES.get(base_type, "Any")] * size)}]'
+        else:
+            return SOLIDITY_TO_PYTHON_TYPES.get(solidity_type, "Any")
+
+    @staticmethod
+    def _get_struct_name(internal_type: str) -> str:
+        if not internal_type or "struct " not in internal_type:
+            raise SolidityConverterError(
+                f"Invalid internal type for struct: {internal_type}"
+            )
+        return internal_type.replace("struct ", "").replace(".", "_").replace("[]", "")
