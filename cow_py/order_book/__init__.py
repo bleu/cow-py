@@ -54,13 +54,15 @@ class OrderBookApi:
     async def _fetch(
         self,
         path: str,
-        params: Dict[str, Any] = None,
         context_override: Dict[str, Any] = None,
+        **request_kwargs,
     ) -> Any:
         context = self._get_context_with_override(context_override)
         url = self.get_api_url(context)
         backoff_opts = context.get("backoffOpts", DEFAULT_BACKOFF_OPTIONS)
-        return await request(url, path=path, params=params, backoff_opts=backoff_opts)
+        return await request(
+            url, path=path, backoff_opts=backoff_opts, **request_kwargs
+        )
 
     def _get_context_with_override(
         self, context_override: Dict[str, Any] = None
@@ -184,8 +186,8 @@ class OrderBookApi:
         self, request: OrderQuoteRequest, context_override: Dict[str, Any] = None
     ) -> OrderQuoteResponse:
         response = await self._fetch(
-            path=f"/api/v1/quote",
-            json=asdict(request),
+            path="/api/v1/quote",
+            json=request.dict(),
             context_override=context_override,
         )
         return OrderQuoteResponse(**response)
@@ -194,28 +196,32 @@ class OrderBookApi:
         self, request: OrderQuoteRequest, context_override: Dict[str, Any] = None
     ) -> OrderQuoteResponse:
         response = await self._fetch(
-            path=f"/api/v1/quote",
-            json=asdict(request),
+            path="/api/v1/quote",
+            json=request.dict(),
             context_override=context_override,
             method="POST",
         )
         return OrderQuoteResponse(**response)
 
-    async def post_order(order: OrderCreation, context_override: Dict[str, Any] = None):
+    async def post_order(
+        self, order: OrderCreation, context_override: Dict[str, Any] = None
+    ):
         response = await self._fetch(
             path="/api/v1/orders",
-            json=asdict(order),
+            json=order.dict(),
             context_override=context_override,
             method="POST",
         )
         return UID(response)
 
     async def delete_order(
-        orders_cancelation: OrderCancellation, context_override: Dict[str, Any] = None
+        self,
+        orders_cancelation: OrderCancellation,
+        context_override: Dict[str, Any] = None,
     ):
         response = await self._fetch(
-            path=f"/api/v1/orders",
-            json=asdict(orders_cancelation),
+            path="/api/v1/orders",
+            json=orders_cancelation.dict(),
             context_override=context_override,
             method="DELETE",
         )
@@ -230,7 +236,7 @@ class OrderBookApi:
         app_data_hash_url = app_data_hash if app_data_hash else ""
         response = await self._fetch(
             path=f"/api/v1/app_data/{app_data_hash_url}",
-            json=app_data,
+            json=app_data.dict(),
             context_override=context_override,
             method="PUT",
         )
