@@ -12,6 +12,7 @@ web3 = "^6.15.1"
 pybars3 = "^0.9.7"
 pydantic = "^2.6.4"
 pytest-mock = "^3.14.0"
+backoff = "^2.2.1"
 
 
 [tool.poetry.group.dev.dependencies]
