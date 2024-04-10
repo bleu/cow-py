@@ -130,7 +130,7 @@ class OrderBookApi:
     ) -> str:
         return (
             self.get_api_url(self._get_context_with_override(context_override))
-            + f"api/v1/orders/{order_uid.root}"
+            + f"/api/v1/orders/{order_uid.root}"
         )
 
     async def get_tx_orders(

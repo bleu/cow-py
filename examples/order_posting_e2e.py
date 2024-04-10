@@ -111,7 +111,7 @@ async def main():
 
     signature = sign_order(order)
     order_uid = await post_order(order, signature)
-    print(f"order posted on link: {ORDER_BOOK_API.get_order_link(order_uid.root)}")
+    print(f"order posted on link: {ORDER_BOOK_API.get_order_link(order_uid)}")
 
 
 if __name__ == "__main__":
