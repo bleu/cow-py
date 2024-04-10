@@ -2,12 +2,13 @@ import unittest
 from cow_py.order_book.generated.model import (
     UID,
     OrderQuoteResponse,
+    OrderQuoteSide,
     Trade,
     OrderQuoteRequest,
 )
 import httpx
 from unittest.mock import AsyncMock, patch
-from cow_py.order_book import (
+from cow_py.order_book.api import (
     OrderBookApi,
     OrderCreation,
 )
@@ -50,18 +51,22 @@ class TestOrderBookApi(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(trades, [mock_trade])
 
     async def test_post_quote(self):
-        mock_order_quote_request_data = {
-            "sellToken": "0x",
-            "buyToken": "0x",
-            "receiver": "0x",
-            "appData": "app_data_object",
-            "appDataHash": "0x",
-            "from": "0x",
-            "priceQuality": "verified",
-            "signingScheme": "eip712",
-            "onchainOrder": False,
-        }
-        mock_order_quote_request = OrderQuoteRequest(**mock_order_quote_request_data)
+        mock_order_quote_request = OrderQuoteRequest(
+            **{
+                "sellToken": "0x",
+                "buyToken": "0x",
+                "receiver": "0x",
+                "appData": "app_data_object",
+                "appDataHash": "0x",
+                "from": "0x",
+                "priceQuality": "verified",
+                "signingScheme": "eip712",
+                "onchainOrder": False,
+            }
+        )
+        mock_order_quote_side = OrderQuoteSide(
+            **{"sellAmountBeforeFee": "0", "kind": "sell"}
+        )
         mock_order_quote_response_data = {
             "quote": {
                 "sellToken": "0x",
@@ -87,7 +92,9 @@ class TestOrderBookApi(unittest.IsolatedAsyncioTestCase):
             mock_request.return_value = httpx.Response(
                 200, json=mock_order_quote_response_data
             )
-            response = await self.api.post_quote(mock_order_quote_request)
+            response = await self.api.post_quote(
+                mock_order_quote_request, mock_order_quote_side
+            )
             mock_request.assert_called_once()
             self.assertEqual(response, mock_order_quote_response)
 
