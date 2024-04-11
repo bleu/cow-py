@@ -18,9 +18,6 @@ class TestOrderBookApi(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.api = OrderBookApi()
 
-    async def asyncTearDown(self):
-        pass
-
     async def test_get_version(self):
         expected_version = "1.0.0"
         with patch("httpx.AsyncClient.request", new_callable=AsyncMock) as mock_request:

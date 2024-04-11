@@ -1,8 +1,7 @@
-from dataclasses import asdict
+import httpx
 import json
 from typing import Any, Dict, List
-from cow_py.common.config import DEFAULT_COW_API_CONTEXT, CowEnv, SupportedChainId
-from cow_py.order_book.requests import DEFAULT_BACKOFF_OPTIONS, request
+from cow_py.common.config import CowEnv, SupportedChainId
 from .generated.model import (
     AppDataObject,
     OrderQuoteSide,
@@ -23,50 +22,42 @@ from .generated.model import (
     OrderCancellation,
 )
 
-ORDER_BOOK_PROD_CONFIG = {
-    SupportedChainId.MAINNET: "https://api.cow.fi/mainnet",
-    SupportedChainId.GNOSIS_CHAIN: "https://api.cow.fi/xdai",
-    SupportedChainId.SEPOLIA: "https://api.cow.fi/sepolia",
-}
+from cow_py.order_book.api_config import (
+    DEFAULT_BACKOFF_OPTIONS,
+    DEFAULT_LIMITER_OPTIONS,
+    APIConfigFactory,
+    JsonResponseAdapter,
+    RequestBuilder,
+    RequestStrategy,
+    backoff_decorator,
+    rate_limit_decorator,
+)
 
-ORDER_BOOK_STAGING_CONFIG = {
-    SupportedChainId.MAINNET: "https://barn.api.cow.fi/mainnet",
-    SupportedChainId.GNOSIS_CHAIN: "https://barn.api.cow.fi/xdai",
-    SupportedChainId.SEPOLIA: "https://barn.api.cow.fi/sepolia",
-}
+
+Context = dict[str, str]
 
 
 class OrderBookApi:
-    def __init__(self, context: Dict[str, Any] = None):
-        if context is None:
-            context = {}
-        self.context = {
-            **asdict(DEFAULT_COW_API_CONTEXT),
-            "backoffOpts": DEFAULT_BACKOFF_OPTIONS,
-            **context,
-        }
-
-    def get_api_url(self, context: Dict[str, Any]) -> str:
-        if context.get("env", CowEnv.PROD) == CowEnv.PROD:
-            return ORDER_BOOK_PROD_CONFIG[
-                context.get("chain_id", SupportedChainId.MAINNET)
-            ]
-        return ORDER_BOOK_STAGING_CONFIG[
-            context.get("chain_id", SupportedChainId.MAINNET)
-        ]
-
-    async def _fetch(
-        self,
-        path: str,
-        context_override: Dict[str, Any] = None,
-        **request_kwargs,
-    ) -> Any:
-        context = self._get_context_with_override(context_override)
-        url = self.get_api_url(context)
-        backoff_opts = context.get("backoffOpts", DEFAULT_BACKOFF_OPTIONS)
-        return await request(
-            url, path=path, backoff_opts=backoff_opts, **request_kwargs
+    def __init__(self, context: Context = {}):
+        self.config = APIConfigFactory.get_config(
+            context.get("env", CowEnv.PROD),
+            context.get("chain_id", SupportedChainId.MAINNET),
         )
+
+    @backoff_decorator(DEFAULT_BACKOFF_OPTIONS)
+    @rate_limit_decorator(DEFAULT_LIMITER_OPTIONS)
+    async def _fetch(
+        self, path, method: str = "GET", context_override: Context = {}, **kwargs
+    ):
+        context = {**self.config.get_context(), **context_override}
+        url = context.get("base_url") + path
+        async with httpx.AsyncClient() as client:
+            builder = RequestBuilder(
+                RequestStrategy(),
+                JsonResponseAdapter(),
+            )
+            print(method)
+            return await builder.execute(client, url, method, **kwargs)
 
     def _get_context_with_override(
         self, context_override: Dict[str, Any] = None
