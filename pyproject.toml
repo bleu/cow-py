@@ -13,6 +13,7 @@ pybars3 = "^0.9.7"
 pydantic = "^2.6.4"
 pytest-mock = "^3.14.0"
 backoff = "^2.2.1"
+aiolimiter = "^1.1.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -26,6 +27,9 @@ ariadne-codegen = "^0.13.0"
 pytest-httpx = "^0.30.0"
 pytest-asyncio = "^0.23.6"
 web3 = { extras = ["tester"], version = "^6.15.1" }
+pycln = "^2.4.0"
+ipdb = "^0.13.13"
+pdbpp = "^0.10.3"
 
 [tool.poetry.scripts]
 

@@ -1,10 +1,11 @@
 import pytest
+
 from cow_py.common.chains import Chain
 from cow_py.subgraphs.deployments import (
-    build_subgraph_url,
+    SUBGRAPH_BASE_URL,
     SubgraphConfig,
     SubgraphEnvironment,
-    SUBGRAPH_BASE_URL,
+    build_subgraph_url,
 )
 
 

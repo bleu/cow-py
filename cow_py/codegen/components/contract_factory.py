@@ -1,7 +1,8 @@
 from typing import Dict, Tuple, Type
-from cow_py.common.chains import Chain
+
 from cow_py.codegen.components.abi_loader import AbiLoader
 from cow_py.codegen.components.base_contract import BaseContract
+from cow_py.common.chains import Chain
 
 
 class ContractFactory:

@@ -1,11 +1,12 @@
+from enum import IntEnum
+from typing import List, NamedTuple, Union
+
+from eth_account import Account
 from eth_account.datastructures import SignedMessage
 from eth_account.signers.local import LocalAccount
-from eth_account import Account
-from typing import List, NamedTuple, Union
 from eth_utils.conversions import to_hex
 from eth_utils.crypto import keccak
 from web3 import Web3
-from enum import IntEnum
 
 from cow_py.contracts.order import (
     CANCELLATIONS_TYPE_FIELDS,
@@ -14,7 +15,6 @@ from cow_py.contracts.order import (
     hash_typed_data,
     normalize_order,
 )
-
 
 EIP1271_MAGICVALUE = to_hex(keccak(text="isValidSignature(bytes32,bytes)"))[:10]
 PRE_SIGNED = to_hex(keccak(text="GPv2Signing.Scheme.PreSign"))
