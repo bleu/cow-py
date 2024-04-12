@@ -1,23 +1,32 @@
+from abc import ABC
 from typing import Any, Optional
 
 import httpx
 
-from cow_py.common.api.backoff import with_backoff
-from cow_py.common.api.rate_limiter import rate_limitted
+from cow_py.common.api.decorators import rate_limitted, with_backoff
+from cow_py.common.config import SupportedChainId
 
 Context = dict[str, Any]
 
 
-class APIConfig:
-    def __init__(self, chain_id, base_context: Optional[Context]):
+class APIConfig(ABC):
+    """Base class for API configuration with common functionality."""
+
+    config_map = {}
+
+    def __init__(
+        self, chain_id: SupportedChainId, base_context: Optional[Context] = None
+    ):
         self.chain_id = chain_id
         self.context = base_context or {}
 
-    def get_base_url(self):
-        raise NotImplementedError()
+    def get_base_url(self) -> str:
+        return self.config_map.get(
+            self.chain_id, "default URL if chain_id is not found"
+        )
 
-    def get_context(self):
-        return self.context
+    def get_context(self) -> Context:
+        return {"base_url": self.get_base_url(), **self.context}
 
 
 class RequestStrategy:
@@ -55,30 +64,16 @@ class JsonResponseAdapter(ResponseAdapter):
             return response.text
 
 
-class WithConfig:
-    @staticmethod
-    def get_config(context: Context):
-        raise NotImplementedError()
-
-
 class ApiBase:
-    def __init__(self, context: Context = {}):
-        self.config = self.__class__.get_config(
-            context,
-        )
+    """Base class for APIs utilizing configuration and request execution."""
 
-    @staticmethod
-    def get_config(context: Context):
-        raise NotImplementedError()
-
-    def _with_context(self, context: Context):
-        return self.__class__({**self.config.get_context(), **context})
+    def __init__(self, config: APIConfig):
+        self.config = config
 
     @with_backoff()
     @rate_limitted()
     async def _fetch(self, path, method="GET", **kwargs):
         url = self.config.get_base_url() + path
-        print("TRIED TO FETCH")
 
         del kwargs["context_override"]
 

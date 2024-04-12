@@ -1,5 +1,6 @@
 from unittest.mock import AsyncMock, patch
 
+import pytest
 
 from cow_py.order_book.api import OrderBookApi, OrderCreation
 from cow_py.order_book.generated.model import (
@@ -8,8 +9,6 @@ from cow_py.order_book.generated.model import (
     OrderQuoteSide,
     Trade,
 )
-
-import pytest
 
 
 @pytest.fixture

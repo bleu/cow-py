@@ -1,5 +1,8 @@
 import backoff
 import httpx
+from aiolimiter import AsyncLimiter
+
+DEFAULT_LIMITER_OPTIONS = {"rate": 5, "per": 1.0}
 
 DEFAULT_BACKOFF_OPTIONS = {
     "max_tries": 10,
@@ -34,6 +37,21 @@ def with_backoff():
                 return await func(*args, **kwargs)
 
             return await closure()
+
+        return wrapper
+
+    return decorator
+
+
+def rate_limitted(
+    rate=DEFAULT_LIMITER_OPTIONS["rate"], per=DEFAULT_LIMITER_OPTIONS["per"]
+):
+    limiter = AsyncLimiter(rate, per)
+
+    def decorator(func):
+        async def wrapper(*args, **kwargs):
+            async with limiter:
+                return await func(*args, **kwargs)
 
         return wrapper
 

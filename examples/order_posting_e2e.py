@@ -17,6 +17,7 @@ from cow_py.contracts.order import Order
 from cow_py.contracts.sign import EcdsaSignature, SigningScheme
 from cow_py.contracts.sign import sign_order as _sign_order
 from cow_py.order_book.api import OrderBookApi
+from cow_py.order_book.config import OrderBookAPIConfigFactory
 from cow_py.order_book.generated.model import (
     UID,
     OrderCreation,
@@ -32,8 +33,9 @@ ORDER_KIND = "sell"
 CHAIN = Chain.SEPOLIA
 CHAIN_ID = SupportedChainId.SEPOLIA
 
+config = OrderBookAPIConfigFactory.get_config("prod", CHAIN_ID)
+ORDER_BOOK_API = OrderBookApi(config)
 
-ORDER_BOOK_API = OrderBookApi(context={"chain_id": CHAIN_ID})
 ADDRESS = os.getenv("USER_ADDRESS")
 ACCOUNT = Account.from_key(os.getenv("PRIVATE_KEY"))
 

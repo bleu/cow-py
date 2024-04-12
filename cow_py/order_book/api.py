@@ -1,9 +1,9 @@
 import json
 from typing import Any, Dict, List
 
-
 from cow_py.common.api.api_base import ApiBase, Context
-from cow_py.order_book.config import WithCoWConfig
+from cow_py.common.config import SupportedChainId
+from cow_py.order_book.config import ConfigFactory
 
 from .generated.model import (
     UID,
@@ -26,7 +26,13 @@ from .generated.model import (
 )
 
 
-class OrderBookApi(WithCoWConfig, ApiBase):
+class OrderBookApi(ApiBase):
+    def __init__(
+        self,
+        config=ConfigFactory.get_config("prod", SupportedChainId.MAINNET),
+    ):
+        self.config = config
+
     async def get_version(self, context_override: Context = {}) -> str:
         return await self._fetch(
             path="/api/v1/version", context_override=context_override

@@ -3,8 +3,9 @@ from unittest.mock import AsyncMock, Mock, patch
 import httpx
 import pytest
 
-from cow_py.common.api.api_base import ApiBase
-from cow_py.common.api.backoff import DEFAULT_BACKOFF_OPTIONS
+from cow_py.common.api.api_base import ApiBase, APIConfig
+from cow_py.common.api.decorators import DEFAULT_BACKOFF_OPTIONS
+from cow_py.common.config import SupportedChainId
 
 ERROR_MESSAGE = "💣💥 Booom!"
 OK_RESPONSE = {"status": 200, "ok": True, "content": {"some": "data"}}
@@ -12,6 +13,13 @@ OK_RESPONSE = {"status": 200, "ok": True, "content": {"some": "data"}}
 
 @pytest.fixture
 def sut():
+    class MyConfig(APIConfig):
+        def __init__(self):
+            super().__init__(SupportedChainId.SEPOLIA, None)
+
+        def get_base_url(self):
+            return "http://localhost"
+
     class MyAPI(ApiBase):
         @staticmethod
         def get_config(context):
@@ -24,7 +32,7 @@ def sut():
                 path="/api/v1/version", context_override=context_override
             )
 
-    return MyAPI()
+    return MyAPI(config=MyConfig())
 
 
 @pytest.fixture
