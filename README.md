@@ -27,14 +27,14 @@ pip install cow_py
 Here's a simple example to get your hooves dirty:
 
 ```python
-# TODO: this code is aspirational, this API doesn't exist
-from cow_py.order_book import OrderBook
 
-# Initialize the OrderBook
-order_book = OrderBook()
+from cow_py.order_book.api import OrderBookApi, UID
+
+# Initialize the OrderBookApi
+order_book_api = OrderBookApi()
 
 # Fetch and display orders
-orders = order_book.get_orders()
+orders = order_book.get_order_by_uid(UID("0x..."))
 print(orders)
 ```
 
