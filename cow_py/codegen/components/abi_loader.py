@@ -1,6 +1,6 @@
-from typing import List, Any
-from abc import ABC, abstractmethod
 import json
+from abc import ABC, abstractmethod
+from typing import Any, List
 
 
 class AbiLoader(ABC):

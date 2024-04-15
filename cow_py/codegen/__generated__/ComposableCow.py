@@ -1,14 +1,16 @@
-from typing import List, Tuple
-from hexbytes import HexBytes
-from cow_py.common.chains import Chain
 from dataclasses import dataclass
+from typing import List, Tuple
+
+from hexbytes import HexBytes
+
 from cow_py.codegen.components import (
-    BaseMixin,
     BaseContract,
-    FileAbiLoader,
+    BaseMixin,
     ContractFactory,
+    FileAbiLoader,
     get_abi_file,
 )
+from cow_py.common.chains import Chain
 
 
 @dataclass
@@ -16,6 +18,12 @@ class IConditionalOrder_ConditionalOrderParams:
     handler: str
     salt: HexBytes
     staticInput: HexBytes
+
+
+@dataclass
+class ComposableCoW_Proof:
+    location: int
+    data: HexBytes
 
 
 @dataclass
@@ -32,12 +40,6 @@ class GPv2Order_Data:
     partiallyFillable: bool
     sellTokenBalance: HexBytes
     buyTokenBalance: HexBytes
-
-
-@dataclass
-class ComposableCoW_Proof:
-    location: int
-    data: HexBytes
 
 
 class ComposableCowMixin(BaseMixin):
