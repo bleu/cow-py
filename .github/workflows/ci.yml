@@ -30,6 +30,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: poetry
+          cache-dependency-path: poetry.lock
+
+      - name: Poetry lock
+        run: |
+          poetry lock
 
       - name: Install dependencies
         run: |
