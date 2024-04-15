@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from cow_py.common.api.rate_limiter import rate_limitted
+from cow_py.common.api.decorators import rate_limitted
 
 
 @pytest.mark.asyncio

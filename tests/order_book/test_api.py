@@ -2,12 +2,13 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from cow_py.order_book.api import OrderBookApi, OrderCreation
+from cow_py.order_book.api import OrderBookApi
 from cow_py.order_book.generated.model import (
     OrderQuoteRequest,
     OrderQuoteResponse,
     OrderQuoteSide,
     Trade,
+    OrderCreation,
 )
 
 

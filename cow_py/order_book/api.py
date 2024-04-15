@@ -3,7 +3,7 @@ from typing import Any, Dict, List
 
 from cow_py.common.api.api_base import ApiBase, Context
 from cow_py.common.config import SupportedChainId
-from cow_py.order_book.config import ConfigFactory
+from cow_py.order_book.config import OrderBookAPIConfigFactory
 
 from .generated.model import (
     UID,
@@ -29,7 +29,7 @@ from .generated.model import (
 class OrderBookApi(ApiBase):
     def __init__(
         self,
-        config=ConfigFactory.get_config("prod", SupportedChainId.MAINNET),
+        config=OrderBookAPIConfigFactory.get_config("prod", SupportedChainId.MAINNET),
     ):
         self.config = config
 
@@ -152,10 +152,10 @@ class OrderBookApi(ApiBase):
         response = await self._fetch(
             path="/api/v1/quote",
             json={
-                **request.dict(by_alias=True),
+                **request.model_dump(by_alias=True),
                 # side object need to be converted to json first to avoid on kind type
                 **json.loads(side.model_dump_json()),
-                **validity.dict(),
+                **validity.model_dump(),
             },
             context_override=context_override,
             method="POST",
