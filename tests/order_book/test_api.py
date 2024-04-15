@@ -3,10 +3,12 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 from cow_py.order_book.api import OrderBookApi
+from cow_py.order_book.generated.model import OrderQuoteSide1
+from cow_py.order_book.generated.model import OrderQuoteSideKindSell
+from cow_py.order_book.generated.model import TokenAmount
 from cow_py.order_book.generated.model import (
     OrderQuoteRequest,
     OrderQuoteResponse,
-    OrderQuoteSide,
     Trade,
     OrderCreation,
 )
@@ -74,7 +76,10 @@ async def test_post_quote(order_book_api):
             "onchainOrder": False,
         }
     )
-    mock_order_quote_side = OrderQuoteSide(sellAmountBeforeFee="0", kind="sell")
+
+    mock_order_quote_side = OrderQuoteSide1(
+        sellAmountBeforeFee=TokenAmount("0"), kind=OrderQuoteSideKindSell.sell
+    )
     mock_order_quote_response_data = {
         "quote": {
             "sellToken": "0x",
@@ -112,17 +117,25 @@ async def test_post_quote(order_book_api):
 async def test_post_order(order_book_api):
     mock_response = "mock_uid"
     mock_order_creation = OrderCreation(
-        sellToken="0x",
-        buyToken="0x",
-        sellAmount="0",
-        buyAmount="0",
-        validTo=0,
-        feeAmount="0",
-        kind="buy",
-        partiallyFillable=True,
-        appData="0x",
-        signingScheme="eip712",
-        signature="0x",
+        **{
+            "sellToken": "0x",
+            "buyToken": "0x",
+            "sellAmount": "0",
+            "buyAmount": "0",
+            "validTo": 0,
+            "feeAmount": "0",
+            "kind": "buy",
+            "partiallyFillable": True,
+            "appData": "0x",
+            "signingScheme": "eip712",
+            "signature": "0x",
+            "receiver": "0x",
+            "sellTokenBalance": "erc20",
+            "buyTokenBalance": "erc20",
+            "quoteId": 0,
+            "appDataHash": "0x",
+            "from_": "0x",
+        }
     )
     with patch("httpx.AsyncClient.request", new_callable=AsyncMock) as mock_request:
         mock_request.return_value = AsyncMock(

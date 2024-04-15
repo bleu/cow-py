@@ -4,6 +4,8 @@ from typing import Any, Dict, List
 from cow_py.common.api.api_base import ApiBase, Context
 from cow_py.common.config import SupportedChainId
 from cow_py.order_book.config import OrderBookAPIConfigFactory
+from typing import Union
+from cow_py.order_book.generated.model import OrderQuoteSide2, OrderQuoteValidity2
 
 from .generated.model import (
     UID,
@@ -17,6 +19,8 @@ from .generated.model import (
     OrderQuoteRequest,
     OrderQuoteResponse,
     OrderQuoteSide,
+    OrderQuoteSide1,
+    OrderQuoteSide3,
     OrderQuoteValidity,
     OrderQuoteValidity1,
     SolverCompetitionResponse,
@@ -122,7 +126,7 @@ class OrderBookApi(ApiBase):
         )
 
     async def get_solver_competition(
-        self, action_id: int = "latest", context_override: Context = {}
+        self, action_id: Union[int, str] = "latest", context_override: Context = {}
     ) -> SolverCompetitionResponse:
         response = await self._fetch(
             path=f"/api/v1/solver_competition/{action_id}",
@@ -142,8 +146,10 @@ class OrderBookApi(ApiBase):
     async def post_quote(
         self,
         request: OrderQuoteRequest,
-        side: OrderQuoteSide,
-        validity: OrderQuoteValidity = OrderQuoteValidity1(validTo=None),
+        side: Union[OrderQuoteSide, OrderQuoteSide1, OrderQuoteSide2, OrderQuoteSide3],
+        validity: Union[
+            OrderQuoteValidity, OrderQuoteValidity1, OrderQuoteValidity2
+        ] = OrderQuoteValidity1(validTo=None),
         context_override: Context = {},
     ) -> OrderQuoteResponse:
         response = await self._fetch(
@@ -184,7 +190,7 @@ class OrderBookApi(ApiBase):
     async def put_app_data(
         self,
         app_data: AppDataObject,
-        app_data_hash: str = None,
+        app_data_hash: str = "",
         context_override: Context = {},
     ) -> AppDataHash:
         app_data_hash_url = app_data_hash if app_data_hash else ""

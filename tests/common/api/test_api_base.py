@@ -6,6 +6,7 @@ import pytest
 from cow_py.common.api.api_base import ApiBase, APIConfig
 from cow_py.common.api.decorators import DEFAULT_BACKOFF_OPTIONS
 from cow_py.common.config import SupportedChainId
+from httpx import Request
 
 ERROR_MESSAGE = "💣💥 Booom!"
 OK_RESPONSE = {"status": 200, "ok": True, "content": {"some": "data"}}
@@ -48,7 +49,7 @@ def mock_success_response():
 def mock_http_status_error():
     return httpx.HTTPStatusError(
         message=ERROR_MESSAGE,
-        request=None,
+        request=Request("GET", "http://example.com"),
         response=httpx.Response(500),
     )
 

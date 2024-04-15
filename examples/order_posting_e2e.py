@@ -18,12 +18,13 @@ from cow_py.contracts.sign import EcdsaSignature, SigningScheme
 from cow_py.contracts.sign import sign_order as _sign_order
 from cow_py.order_book.api import OrderBookApi
 from cow_py.order_book.config import OrderBookAPIConfigFactory
+from cow_py.order_book.generated.model import OrderQuoteSide1, TokenAmount
+from cow_py.order_book.generated.model import OrderQuoteSideKindSell
 from cow_py.order_book.generated.model import (
     UID,
     OrderCreation,
     OrderQuoteRequest,
     OrderQuoteResponse,
-    OrderQuoteSide,
 )
 
 BUY_TOKEN = "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14"  # WETH
@@ -41,7 +42,7 @@ ACCOUNT = Account.from_key(os.getenv("PRIVATE_KEY"))
 
 
 async def get_order_quote(
-    order_quote_request: OrderQuoteRequest, order_side: OrderQuoteSide
+    order_quote_request: OrderQuoteRequest, order_side: OrderQuoteSide1
 ) -> OrderQuoteResponse:
     return await ORDER_BOOK_API.post_quote(order_quote_request, order_side)
 
@@ -59,19 +60,21 @@ def sign_order(order: Order) -> EcdsaSignature:
 
 async def post_order(order: Order, signature: EcdsaSignature) -> UID:
     order_creation = OrderCreation(
-        sellToken=order.sellToken,
-        buyToken=order.buyToken,
-        sellAmount=order.sellAmount,
-        feeAmount=order.feeAmount,
-        buyAmount=order.buyAmount,
-        validTo=order.validTo,
-        kind=order.kind,
-        partiallyFillable=order.partiallyFillable,
-        appData=order.appData,
-        signature=signature.data,
-        signingScheme="eip712",
-        receiver=order.receiver,
-        **{"from": ADDRESS},
+        **{
+            "from": ADDRESS,
+            "sellToken": order.sellToken,
+            "buyToken": order.buyToken,
+            "sellAmount": order.sellAmount,
+            "feeAmount": order.feeAmount,
+            "buyAmount": order.buyAmount,
+            "validTo": order.validTo,
+            "kind": order.kind,
+            "partiallyFillable": order.partiallyFillable,
+            "appData": order.appData,
+            "signature": signature.data,
+            "signingScheme": "eip712",
+            "receiver": order.receiver,
+        },
     )
     return await ORDER_BOOK_API.post_order(order_creation)
 
@@ -84,8 +87,9 @@ async def main():
             "from": ADDRESS,
         }
     )
-    order_side = OrderQuoteSide(
-        kind=ORDER_KIND, sellAmountBeforeFee=SELL_AMOUNT_BEFORE_FEE
+    order_side = OrderQuoteSide1(
+        kind=OrderQuoteSideKindSell.sell,
+        sellAmountBeforeFee=TokenAmount(SELL_AMOUNT_BEFORE_FEE),
     )
 
     order_quote = await get_order_quote(order_quote_request, order_side)
