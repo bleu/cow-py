@@ -40,7 +40,7 @@ def mock_success_response():
     return AsyncMock(
         status_code=200,
         headers={"content-type": "application/json"},
-        json=AsyncMock(return_value=OK_RESPONSE),
+        json=Mock(return_value=OK_RESPONSE),
     )
 
 

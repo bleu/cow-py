@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -52,7 +52,7 @@ async def test_get_trades_by_order_uid(order_book_api):
         mock_request.return_value = AsyncMock(
             status_code=200,
             headers={"content-type": "application/json"},
-            json=AsyncMock(return_value=mock_trade_data),
+            json=Mock(return_value=mock_trade_data),
         )
         trades = await order_book_api.get_trades_by_order_uid("mock_order_uid")
         mock_request.assert_awaited_once()
@@ -99,7 +99,7 @@ async def test_post_quote(order_book_api):
         mock_request.return_value = AsyncMock(
             status_code=200,
             headers={"content-type": "application/json"},
-            json=AsyncMock(return_value=mock_order_quote_response_data),
+            json=Mock(return_value=mock_order_quote_response_data),
         )
         response = await order_book_api.post_quote(
             mock_order_quote_request, mock_order_quote_side
