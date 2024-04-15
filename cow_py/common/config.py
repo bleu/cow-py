@@ -2,16 +2,20 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, Optional
 
+
 class SupportedChainId(Enum):
     MAINNET = 1
     GNOSIS_CHAIN = 100
     SEPOLIA = 11155111
 
+
 class CowEnv(Enum):
-    PROD = 'prod'
-    STAGING = 'staging'
-    
+    PROD = "prod"
+    STAGING = "staging"
+
+
 ApiBaseUrls = Dict[SupportedChainId, str]
+
 
 @dataclass
 class ApiContext:
@@ -19,6 +23,7 @@ class ApiContext:
     env: CowEnv
     base_urls: Optional[ApiBaseUrls] = None
     max_tries: Optional[int] = 5
+
 
 # Define the list of available environments.
 ENVS_LIST = [CowEnv.PROD, CowEnv.STAGING]

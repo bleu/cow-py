@@ -1,6 +1,7 @@
-from typing import Dict, List, Optional, Tuple, Any, Type
-from cow_py.common.chains import Chain
+from typing import Any, Dict, List, Optional, Tuple, Type
+
 from cow_py.codegen.components.contract_loader import ContractLoader
+from cow_py.common.chains import Chain
 
 
 class BaseContractError(Exception):

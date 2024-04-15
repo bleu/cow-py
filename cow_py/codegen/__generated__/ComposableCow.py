@@ -1,14 +1,16 @@
-from typing import List, Tuple
-from hexbytes import HexBytes
-from cow_py.common.chains import Chain
 from dataclasses import dataclass
+from typing import List, Tuple
+
+from hexbytes import HexBytes
+
 from cow_py.codegen.components import (
-    BaseMixin,
     BaseContract,
-    FileAbiLoader,
+    BaseMixin,
     ContractFactory,
+    FileAbiLoader,
     get_abi_file,
 )
+from cow_py.common.chains import Chain
 
 
 @dataclass

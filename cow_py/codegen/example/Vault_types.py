@@ -1,14 +1,16 @@
-from typing import List, Tuple, Any
-from hexbytes import HexBytes
-from cow_py.common.chains import Chain
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, List, Tuple
+
+from hexbytes import HexBytes
+
 from cow_py.codegen.components import (
-    BaseMixin,
     BaseContract,
-    FileAbiLoader,
+    BaseMixin,
     ContractFactory,
+    FileAbiLoader,
 )
+from cow_py.common.chains import Chain
 
 
 # TODO: Enums must be fixed before using them. They currently only use placeholder values.

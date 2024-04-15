@@ -1,6 +1,7 @@
-from cow_py.common.chains import Chain
 from dataclasses import dataclass
 from enum import Enum
+
+from cow_py.common.chains import Chain
 
 
 class SubgraphEnvironment(Enum):

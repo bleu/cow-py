@@ -3,23 +3,21 @@
 # The funds have to already be approved to the CoW Swap Vault Relayer
 
 import asyncio
-from dataclasses import asdict
 import json
 import os
+from dataclasses import asdict
+
+from web3 import Account
+
 from cow_py.common.chains import Chain
 from cow_py.common.config import SupportedChainId
 from cow_py.common.constants import CowContractAddress
 from cow_py.contracts.domain import domain
-from cow_py.contracts.sign import (
-    EcdsaSignature,
-    SigningScheme,
-    sign_order as _sign_order,
-)
-from web3 import Account
-
-
 from cow_py.contracts.order import Order
+from cow_py.contracts.sign import EcdsaSignature, SigningScheme
+from cow_py.contracts.sign import sign_order as _sign_order
 from cow_py.order_book.api import OrderBookApi
+from cow_py.order_book.config import OrderBookAPIConfigFactory
 from cow_py.order_book.generated.model import (
     UID,
     OrderCreation,
@@ -28,16 +26,16 @@ from cow_py.order_book.generated.model import (
     OrderQuoteSide,
 )
 
-
 BUY_TOKEN = "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14"  # WETH
 SELL_TOKEN = "0xbe72E441BF55620febc26715db68d3494213D8Cb"  # USDC
-SELL_AMOUNT_BEFORE_FEE = "100000000000000000000"  # 100 USDC with 18 decimals
+SELL_AMOUNT_BEFORE_FEE = "10000000000000000000"  # 100 USDC with 18 decimals
 ORDER_KIND = "sell"
 CHAIN = Chain.SEPOLIA
 CHAIN_ID = SupportedChainId.SEPOLIA
 
+config = OrderBookAPIConfigFactory.get_config("prod", CHAIN_ID)
+ORDER_BOOK_API = OrderBookApi(config)
 
-ORDER_BOOK_API = OrderBookApi(context={"chain_id": CHAIN_ID})
 ADDRESS = os.getenv("USER_ADDRESS")
 ACCOUNT = Account.from_key(os.getenv("PRIVATE_KEY"))
 
@@ -92,7 +90,7 @@ async def main():
 
     order_quote = await get_order_quote(order_quote_request, order_side)
 
-    order_quote_dict = json.loads(order_quote.quote.json(by_alias=True))
+    order_quote_dict = json.loads(order_quote.quote.model_dump_json(by_alias=True))
     order = Order(
         **{
             "sellToken": SELL_TOKEN,

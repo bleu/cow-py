@@ -1,10 +1,8 @@
+import importlib.resources
 import os
 
 from cow_py.codegen.abi_handler import ABIHandler
-
-
 from cow_py.contracts import abi
-import importlib.resources
 
 
 def get_all_abis():

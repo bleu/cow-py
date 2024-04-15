@@ -1,11 +1,10 @@
-from abc import ABC, abstractmethod
-
-from cow_py.common.chains import Chain
-
 import json
 import logging
+from abc import ABC, abstractmethod
 
 import httpx
+
+from cow_py.common.chains import Chain
 
 
 class GraphQLError(Exception):
