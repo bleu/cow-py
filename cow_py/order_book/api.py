@@ -83,11 +83,8 @@ class OrderBookApi(ApiBase):
         )
         return Order(**response)
 
-    def get_order_link(self, order_uid: UID, context_override: Context = {}) -> str:
-        return (
-            self.get_api_url(self._get_context_with_override(context_override))
-            + f"/api/v1/orders/{order_uid.root}"
-        )
+    def get_order_link(self, order_uid: UID) -> str:
+        return self.config.get_base_url() + f"/api/v1/orders/{order_uid.root}"
 
     async def get_tx_orders(
         self, tx_hash: TransactionHash, context_override: Context = {}

@@ -53,13 +53,13 @@ class RequestBuilder:
 
     async def execute(self, client, url, method, **kwargs):
         response = await self.strategy.make_request(client, url, method, **kwargs)
-        return await self.response_adapter.adapt_response(response)
+        return self.response_adapter.adapt_response(response)
 
 
 class JsonResponseAdapter(ResponseAdapter):
-    async def adapt_response(self, response):
+    def adapt_response(self, response):
         if response.headers.get("content-type") == "application/json":
-            return await response.json()
+            return response.json()
         else:
             return response.text
 
