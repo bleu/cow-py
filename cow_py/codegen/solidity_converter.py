@@ -10,9 +10,9 @@ SOLIDITY_TO_PYTHON_TYPES = {
     "int": "int",
 }
 DYNAMIC_SOLIDITY_TYPES = {
-    f"{prefix}{i*8 if prefix != 'bytes' else i}": "int"
-    if prefix != "bytes"
-    else "HexBytes"
+    f"{prefix}{i*8 if prefix != 'bytes' else i}": (
+        "int" if prefix != "bytes" else "HexBytes"
+    )
     for prefix in ["uint", "int", "bytes"]
     for i in range(1, 33)
 }
@@ -97,11 +97,3 @@ class SolidityConverter:
                 return f'Tuple[{", ".join([SOLIDITY_TO_PYTHON_TYPES.get(base_type, "Any")] * size)}]'
         else:
             return SOLIDITY_TO_PYTHON_TYPES.get(solidity_type, "Any")
-
-    @staticmethod
-    def _get_struct_name(internal_type: str) -> str:
-        if not internal_type or "struct " not in internal_type:
-            raise SolidityConverterError(
-                f"Invalid internal type for struct: {internal_type}"
-            )
-        return internal_type.replace("struct ", "").replace(".", "_").replace("[]", "")

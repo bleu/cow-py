@@ -50,6 +50,9 @@ exclude = [
     "**/node_modules",
     "**/__pycache__",
     "cow_py/subgraph/client/*.py",
-    # "cow_py/order_book/generated/*.py"
+    "cow_py/order_book/generated/*.py",
+    ".venv/",
+    "**/__generated__"
 ]
 reportIncompatibleVariableOverride = 'warning'
+strictParameterNoneValue = false
