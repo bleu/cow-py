@@ -1,4 +1,5 @@
 import pytest
+
 from cow_py.codegen.abi_handler import to_python_conventional_name
 
 

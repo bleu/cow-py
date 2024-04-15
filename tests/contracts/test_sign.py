@@ -1,15 +1,15 @@
+import pytest
+from eth_account.messages import SignableMessage
 from eth_account.signers.local import LocalAccount
 from eth_utils.conversions import to_hex
-import pytest
-from web3 import Web3, EthereumTesterProvider
+from web3 import EthereumTesterProvider, Web3
 
-from eth_account.messages import SignableMessage
 from cow_py.contracts.order import hash_order_cancellation
 
 # Assuming you have these Python equivalents of your TypeScript code
 from cow_py.contracts.sign import SigningScheme, sign_order, sign_order_cancellation
-from .conftest import SAMPLE_ORDER
 
+from .conftest import SAMPLE_ORDER
 
 # Setup Web3 and Ethereum Tester (or use your existing setup)
 w3 = Web3(EthereumTesterProvider())

@@ -1,4 +1,5 @@
 import pytest
+
 from cow_py.codegen.solidity_converter import SolidityConverter, SolidityConverterError
 
 

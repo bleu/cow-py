@@ -1,6 +1,6 @@
-from cow_py.subgraphs.base.query import GraphQLQuery
 from cow_py.subgraphs.base.client import GraphQLClient
-from cow_py.subgraphs.deployments import build_subgraph_url, SubgraphEnvironment
+from cow_py.subgraphs.base.query import GraphQLQuery
+from cow_py.subgraphs.deployments import SubgraphEnvironment, build_subgraph_url
 
 
 class CoWSubgraph(GraphQLClient):

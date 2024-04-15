@@ -1,11 +1,8 @@
-from eth_account.messages import (
-    encode_typed_data,
-    _hash_eip191_message,
-)
-
 from dataclasses import dataclass
 from enum import Enum
 from typing import Literal, Optional, Union
+
+from eth_account.messages import _hash_eip191_message, encode_typed_data
 from eth_typing import Hash32, HexStr
 from eth_utils.conversions import to_bytes, to_hex
 

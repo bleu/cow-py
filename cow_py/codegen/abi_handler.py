@@ -1,11 +1,12 @@
+import importlib.resources
 import re
 from typing import Any, Dict, List
-from pybars import Compiler
-from cow_py.codegen.components.abi_loader import FileAbiLoader
-import importlib.resources
-from cow_py.codegen.components import templates
-from cow_py.codegen.components.templates import partials
 
+from pybars import Compiler
+
+from cow_py.codegen.components import templates
+from cow_py.codegen.components.abi_loader import FileAbiLoader
+from cow_py.codegen.components.templates import partials
 from cow_py.codegen.solidity_converter import SolidityConverter
 
 CAMEL_TO_SNAKE_REGEX = re.compile(

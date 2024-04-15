@@ -1,7 +1,6 @@
 import re
 from typing import Optional
 
-
 SOLIDITY_TO_PYTHON_TYPES = {
     "address": "str",
     "bool": "bool",

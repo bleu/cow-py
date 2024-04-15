@@ -1,87 +1,45 @@
-from dataclasses import asdict
 import json
 from typing import Any, Dict, List
-from cow_py.common.config import DEFAULT_COW_API_CONTEXT, CowEnv, SupportedChainId
-from cow_py.order_book.requests import DEFAULT_BACKOFF_OPTIONS, request
+
+from cow_py.common.api.api_base import ApiBase, Context
+from cow_py.common.config import SupportedChainId
+from cow_py.order_book.config import OrderBookAPIConfigFactory
+
 from .generated.model import (
+    UID,
+    Address,
+    AppDataHash,
     AppDataObject,
+    NativePriceResponse,
+    Order,
+    OrderCancellation,
+    OrderCreation,
+    OrderQuoteRequest,
+    OrderQuoteResponse,
     OrderQuoteSide,
     OrderQuoteValidity,
     OrderQuoteValidity1,
-    Trade,
-    Order,
-    TotalSurplus,
-    NativePriceResponse,
     SolverCompetitionResponse,
-    OrderQuoteRequest,
-    OrderQuoteResponse,
-    OrderCreation,
-    UID,
-    Address,
+    TotalSurplus,
+    Trade,
     TransactionHash,
-    AppDataHash,
-    OrderCancellation,
 )
 
-ORDER_BOOK_PROD_CONFIG = {
-    SupportedChainId.MAINNET: "https://api.cow.fi/mainnet",
-    SupportedChainId.GNOSIS_CHAIN: "https://api.cow.fi/xdai",
-    SupportedChainId.SEPOLIA: "https://api.cow.fi/sepolia",
-}
 
-ORDER_BOOK_STAGING_CONFIG = {
-    SupportedChainId.MAINNET: "https://barn.api.cow.fi/mainnet",
-    SupportedChainId.GNOSIS_CHAIN: "https://barn.api.cow.fi/xdai",
-    SupportedChainId.SEPOLIA: "https://barn.api.cow.fi/sepolia",
-}
-
-
-class OrderBookApi:
-    def __init__(self, context: Dict[str, Any] = None):
-        if context is None:
-            context = {}
-        self.context = {
-            **asdict(DEFAULT_COW_API_CONTEXT),
-            "backoffOpts": DEFAULT_BACKOFF_OPTIONS,
-            **context,
-        }
-
-    def get_api_url(self, context: Dict[str, Any]) -> str:
-        if context.get("env", CowEnv.PROD) == CowEnv.PROD:
-            return ORDER_BOOK_PROD_CONFIG[
-                context.get("chain_id", SupportedChainId.MAINNET)
-            ]
-        return ORDER_BOOK_STAGING_CONFIG[
-            context.get("chain_id", SupportedChainId.MAINNET)
-        ]
-
-    async def _fetch(
+class OrderBookApi(ApiBase):
+    def __init__(
         self,
-        path: str,
-        context_override: Dict[str, Any] = None,
-        **request_kwargs,
-    ) -> Any:
-        context = self._get_context_with_override(context_override)
-        url = self.get_api_url(context)
-        backoff_opts = context.get("backoffOpts", DEFAULT_BACKOFF_OPTIONS)
-        return await request(
-            url, path=path, backoff_opts=backoff_opts, **request_kwargs
-        )
+        config=OrderBookAPIConfigFactory.get_config("prod", SupportedChainId.MAINNET),
+    ):
+        self.config = config
 
-    def _get_context_with_override(
-        self, context_override: Dict[str, Any] = None
-    ) -> Dict[str, Any]:
-        if context_override is None:
-            context_override = {}
-        return {**self.context, **context_override}
-
-    async def get_version(self, context_override: Dict[str, Any] = None) -> str:
+    async def get_version(self, context_override: Context = {}) -> str:
         return await self._fetch(
             path="/api/v1/version", context_override=context_override
         )
 
     async def get_trades_by_owner(
-        self, owner: Address, context_override: Dict[str, Any] = None
+        self, owner: Address, context_override: Context = {}
     ) -> List[Trade]:
         response = await self._fetch(
             path="/api/v1/trades",
@@ -91,7 +49,7 @@ class OrderBookApi:
         return [Trade(**trade) for trade in response]
 
     async def get_trades_by_order_uid(
-        self, order_uid: UID, context_override: Dict[str, Any] = None
+        self, order_uid: UID, context_override: Context = {}
     ) -> List[Trade]:
         response = await self._fetch(
             path="/api/v1/trades",
@@ -105,7 +63,7 @@ class OrderBookApi:
         owner: Address,
         limit: int = 1000,
         offset: int = 0,
-        context_override: Dict[str, Any] = None,
+        context_override: Context = {},
     ) -> List[Order]:
         return [
             Order(**order)
@@ -117,7 +75,7 @@ class OrderBookApi:
         ]
 
     async def get_order_by_uid(
-        self, order_uid: UID, context_override: Dict[str, Any] = None
+        self, order_uid: UID, context_override: Context = {}
     ) -> Order:
         response = await self._fetch(
             path=f"/api/v1/orders/{order_uid}",
@@ -125,16 +83,11 @@ class OrderBookApi:
         )
         return Order(**response)
 
-    def get_order_link(
-        self, order_uid: UID, context_override: Dict[str, Any] = None
-    ) -> str:
-        return (
-            self.get_api_url(self._get_context_with_override(context_override))
-            + f"/api/v1/orders/{order_uid.root}"
-        )
+    def get_order_link(self, order_uid: UID) -> str:
+        return self.config.get_base_url() + f"/api/v1/orders/{order_uid.root}"
 
     async def get_tx_orders(
-        self, tx_hash: TransactionHash, context_override: Dict[str, Any] = None
+        self, tx_hash: TransactionHash, context_override: Context = {}
     ) -> List[Order]:
         response = await self._fetch(
             path=f"/api/v1/transactions/{tx_hash}/orders",
@@ -143,7 +96,7 @@ class OrderBookApi:
         return [Order(**order) for order in response]
 
     async def get_native_price(
-        self, tokenAddress: Address, context_override: Dict[str, Any] = None
+        self, tokenAddress: Address, context_override: Context = {}
     ) -> NativePriceResponse:
         response = await self._fetch(
             path=f"/api/v1/token/{tokenAddress}/native_price",
@@ -152,7 +105,7 @@ class OrderBookApi:
         return NativePriceResponse(**response)
 
     async def get_total_surplus(
-        self, user: Address, context_override: Dict[str, Any] = None
+        self, user: Address, context_override: Context = {}
     ) -> TotalSurplus:
         response = await self._fetch(
             path=f"/api/v1/users/{user}/total_surplus",
@@ -161,7 +114,7 @@ class OrderBookApi:
         return TotalSurplus(**response)
 
     async def get_app_data(
-        self, app_data_hash: AppDataHash, context_override: Dict[str, Any] = None
+        self, app_data_hash: AppDataHash, context_override: Context = {}
     ) -> Dict[str, Any]:
         return await self._fetch(
             path=f"/api/v1/app_data/{app_data_hash}",
@@ -169,7 +122,7 @@ class OrderBookApi:
         )
 
     async def get_solver_competition(
-        self, action_id: int = "latest", context_override: Dict[str, Any] = None
+        self, action_id: int = "latest", context_override: Context = {}
     ) -> SolverCompetitionResponse:
         response = await self._fetch(
             path=f"/api/v1/solver_competition/{action_id}",
@@ -178,7 +131,7 @@ class OrderBookApi:
         return SolverCompetitionResponse(**response)
 
     async def get_solver_competition_by_tx_hash(
-        self, tx_hash: TransactionHash, context_override: Dict[str, Any] = None
+        self, tx_hash: TransactionHash, context_override: Context = {}
     ) -> SolverCompetitionResponse:
         response = await self._fetch(
             path=f"/api/v1/solver_competition/by_tx_hash/{tx_hash}",
@@ -190,28 +143,26 @@ class OrderBookApi:
         self,
         request: OrderQuoteRequest,
         side: OrderQuoteSide,
-        validity: OrderQuoteValidity = OrderQuoteValidity1(),
-        context_override: Dict[str, Any] = None,
+        validity: OrderQuoteValidity = OrderQuoteValidity1(validTo=None),
+        context_override: Context = {},
     ) -> OrderQuoteResponse:
         response = await self._fetch(
             path="/api/v1/quote",
             json={
-                **request.dict(by_alias=True),
+                **request.model_dump(by_alias=True),
                 # side object need to be converted to json first to avoid on kind type
-                **json.loads(side.json()),
-                **validity.dict(),
+                **json.loads(side.model_dump_json()),
+                **validity.model_dump(),
             },
             context_override=context_override,
             method="POST",
         )
         return OrderQuoteResponse(**response)
 
-    async def post_order(
-        self, order: OrderCreation, context_override: Dict[str, Any] = None
-    ):
+    async def post_order(self, order: OrderCreation, context_override: Context = {}):
         response = await self._fetch(
             path="/api/v1/orders",
-            json=json.loads(order.json(by_alias=True)),
+            json=json.loads(order.model_dump_json(by_alias=True)),
             context_override=context_override,
             method="POST",
         )
@@ -220,11 +171,11 @@ class OrderBookApi:
     async def delete_order(
         self,
         orders_cancelation: OrderCancellation,
-        context_override: Dict[str, Any] = None,
+        context_override: Context = {},
     ):
         response = await self._fetch(
             path="/api/v1/orders",
-            json=orders_cancelation.json(),
+            json=orders_cancelation.model_dump_json(),
             context_override=context_override,
             method="DELETE",
         )
@@ -234,12 +185,12 @@ class OrderBookApi:
         self,
         app_data: AppDataObject,
         app_data_hash: str = None,
-        context_override: Dict[str, Any] = None,
+        context_override: Context = {},
     ) -> AppDataHash:
         app_data_hash_url = app_data_hash if app_data_hash else ""
         response = await self._fetch(
             path=f"/api/v1/app_data/{app_data_hash_url}",
-            json=app_data.json(),
+            json=app_data.model_dump_json(),
             context_override=context_override,
             method="PUT",
         )
