@@ -37,10 +37,8 @@ class BaseContract:
         :param chain: The chain the contract is deployed on
         :param abi: The ABI of the contract, optional
         """
-        print(dir(self))
         if not hasattr(self, "_initialized"):  # Avoid re-initialization
             # Initialize the instance (only the first time)
-            print("initializing")
             self.contract_loader = ContractLoader(chain)
             self.web3_contract = self.contract_loader.get_web3_contract(
                 address, abi or self.ABI or []
