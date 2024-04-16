@@ -26,9 +26,7 @@ def contract_with_abi():
         {"type": "function", "name": "balanceOf"},
         {"type": "event", "name": "Transfer"},
     ]
-    with patch(
-        "cow_py.codegen.components.contract_loader.ContractLoader"
-    ) as mock_loader:
+    with patch("cow_py.codegen.components.base_contract.ContractLoader") as mock_loader:
         mock_contract = Mock()
         mock_contract.abi = abi
         mock_loader.return_value.get_web3_contract.return_value = mock_contract
