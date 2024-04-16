@@ -66,16 +66,6 @@ class OrderCancellations:
 # settlement to revert.
 BUY_ETH_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
 
-# /**
-#  * Gnosis Protocol v2 order flags.
-#  */
-# export type OrderFlags = Pick<
-#   Order,
-#   "kind" | "partiallyFillable" | "sellTokenBalance" | "buyTokenBalance"
-# >;
-
-Timestamp = Union[int, int]
-
 BytesLike = Union[str, bytes, HexStr]
 
 HashLike = Union[BytesLike, int]
@@ -121,22 +111,6 @@ CANCELLATIONS_TYPE_FIELDS = [
     dict(name="orderUids", type="bytes[]"),
 ]
 
-#  The EIP-712 type hash for a Gnosis Protocol v2 order.
-
-# ORDER_TYPE_HASH =
-# export const ORDER_TYPE_HASH = ethers.utils.id(
-#   `Order(${ORDER_TYPE_FIELDS.map(({ name, type }) => `${type} ${name}`).join(
-#     ",",
-#   )})`,
-# );
-
-
-# export function timestamp(t: Timestamp): number {
-#   return typeof t === "number" ? t : ~~(t.getTime() / 1000);
-# }
-def timestamp(t: int) -> int:
-    return t
-
 
 def hashify(h: Union[int, str, bytes]) -> str:
     """
@@ -174,22 +148,6 @@ def normalize_buy_token_balance(
         raise ValueError(f"Invalid order balance {balance}")
 
 
-# /**
-#  * Normalized representation of an {@link Order} for EIP-712 operations.
-#  */
-# export type NormalizedOrder = Omit<
-#   Order,
-#   "validTo" | "appData" | "kind" | "sellTokenBalance" | "buyTokenBalance"
-# > & {
-#   receiver: string;
-#   validTo: number;
-#   appData: string;
-#   kind: "sell" | "buy";
-#   sellTokenBalance: "erc20" | "external" | "internal";
-#   buyTokenBalance: "erc20" | "internal";
-# };
-
-
 ZERO_ADDRESS = "0x" + "00" * 20
 
 
@@ -203,14 +161,16 @@ def normalize_order(order: Order):
         "receiver": order.receiver if order.receiver else ZERO_ADDRESS,
         "sellAmount": order.sellAmount,
         "buyAmount": order.buyAmount,
-        "validTo": timestamp(order.validTo),
+        "validTo": order.validTo,
         "appData": hashify(order.appData),
         "feeAmount": order.feeAmount,
         "kind": order.kind,
         "partiallyFillable": order.partiallyFillable,
-        "sellTokenBalance": order.sellTokenBalance
-        if order.sellTokenBalance
-        else OrderBalance.ERC20.value,
+        "sellTokenBalance": (
+            order.sellTokenBalance
+            if order.sellTokenBalance
+            else OrderBalance.ERC20.value
+        ),
         "buyTokenBalance": normalize_buy_token_balance(order.buyTokenBalance),
     }
 
@@ -281,60 +241,3 @@ class OrderUidParams:
     owner: str
     # The timestamp this order is valid until.
     validTo: int
-
-
-# /**
-#  * Computes the order UID for an order and the given owner.
-#  */
-# export function computeOrderUid(
-#   domain: TypedDataDomain,
-#   order: Order,
-#   owner: string,
-# ): string {
-#   return packOrderUidParams({
-#     orderDigest: hashOrder(domain, order),
-#     owner,
-#     validTo: order.validTo,
-#   });
-# }
-
-# /**
-#  * Compute the unique identifier describing a user order in the settlement
-#  * contract.
-#  *
-#  * @param OrderUidParams The parameters used for computing the order's unique
-#  * identifier.
-#  * @returns A string that unequivocally identifies the order of the user.
-#  */
-# export function packOrderUidParams({
-#   orderDigest,
-#   owner,
-#   validTo,
-# }: OrderUidParams): string {
-#   return ethers.utils.solidityPack(
-#     ["bytes32", "address", "uint32"],
-#     [orderDigest, owner, timestamp(validTo)],
-#   );
-# }
-
-# /**
-#  * Extracts the order unique identifier parameters from the specified bytes.
-#  *
-#  * @param orderUid The order UID encoded as a hexadecimal string.
-#  * @returns The extracted order UID parameters.
-#  */
-# export function extractOrderUidParams(orderUid: string): OrderUidParams {
-#   const bytes = ethers.utils.arrayify(orderUid);
-#   if (bytes.length != ORDER_UID_LENGTH) {
-#     throw new Error("invalid order UID length");
-#   }
-
-#   const view = new DataView(bytes.buffer);
-#   return {
-#     orderDigest: ethers.utils.hexlify(bytes.subarray(0, 32)),
-#     owner: ethers.utils.getAddress(
-#       ethers.utils.hexlify(bytes.subarray(32, 52)),
-#     ),
-#     validTo: view.getUint32(52),
-#   };
-# }
