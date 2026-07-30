@@ -263,3 +263,6 @@ Python SDK for: CoWSwap, CoW Protocol, DEX trading, Ethereum trading bot, DeFi d
 Happy coding, and may the herd be with you! 🐄💻
 
 **Star ⭐ this repository to support CoW Protocol development!**
+---
+
+[![Built and maintained by Bleu](https://raw.githubusercontent.com/bleu/.github/main/brand/banner-built-by-bleu.png)](https://bleu.builders)
