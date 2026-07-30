@@ -12,9 +12,6 @@
 
 Welcome to the CoW Protocol Python SDK (`cowdao_cowpy`), a developer-friendly Python library for interacting with CoWSwap and the CoW Protocol. This SDK provides tools for querying on-chain data, managing orders, and integrating with the CoW Protocol's smart contracts. Whether you're building a DeFi application, a trading bot, a solver, or just exploring the CoW Protocol, this SDK aims to make your development journey smoother and more enjoyable. 🚀
 
-### Keywords
-`cowswap python`, `cow protocol sdk`, `cowswap api`, `cow swap python library`, `decentralized exchange python`, `dex aggregator python`, `ethereum trading python`, `mev protection python`, `intent-based trading`, `batch auction dex`, `web3 python`, `defi python sdk`
-
 ## 📚 Documentation
 For detailed documentation on how to use the CoW Protocol Python SDK, please visit our [documentation site](https://cowdao-grants.github.io/cow-py/).
 
