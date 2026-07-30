@@ -251,10 +251,6 @@ Alternatively, you can join our community on [Discord](https://discord.gg/cowpro
 
 `cowdao_cowpy` is released under the GNU License. For more details, check out the [LICENSE](LICENSE) file.
 
-## 🔍 SEO Keywords
-
-Python SDK for: CoWSwap, CoW Protocol, DEX trading, Ethereum trading bot, DeFi development, order book API, intent-based trading, batch auctions, MEV protection, decentralized exchange integration, Web3 automation, cryptocurrency trading, Gnosis Chain, ERC20 tokens, smart contract interaction
-
 ---
 
 Happy coding, and may the herd be with you! 🐄💻
